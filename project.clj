@@ -8,7 +8,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/cljs"]
+  :source-paths ["src/clj" "src/cljs" "script"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
@@ -17,6 +17,7 @@
   :profiles
   {:dev
    {:dependencies [[binaryage/devtools "0.9.10"]
+                   [figwheel-sidecar "0.5.16"]
                    [re-frisk "0.5.3"]]
 
     :plugins      [[lein-figwheel "0.5.16"]]}
@@ -32,7 +33,7 @@
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
                     :source-map-timestamp true
-                    :preloads             [devtools.preload re-frisk.preload]
+                    :preloads             [devtools.preload #_re-frisk.preload]
                     :external-config      {:devtools/config {:features-to-install :all}}
                     }}
 
@@ -42,9 +43,4 @@
                     :output-to       "resources/public/js/compiled/app.js"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
-                    :pretty-print    false}}
-
-
-    ]}
-
-  )
+                    :pretty-print    false}}]})
