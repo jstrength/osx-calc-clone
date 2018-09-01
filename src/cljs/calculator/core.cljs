@@ -15,39 +15,46 @@
   (.add (.-classList element) "active")
   (js/setTimeout (fn [] (.remove (.-classList element) "active")) 150))
 
-(defn handle-keypress [element]
-  (doto element
+(defn handle-keypress [element-name]
+  (doto (.getElementById js/document element-name)
     (animate-btn)
     (.click)))
 
-(defn setup []
+(defn set-keybindings []
   (aset js/document "onkeydown"
-        (fn [e] (case (.-which e)
-                  48 (handle-keypress (.getElementById js/document "zero"))
-                  49 (handle-keypress (.getElementById js/document "one"))
-                  50 (handle-keypress (.getElementById js/document "two"))
-                  51 (handle-keypress (.getElementById js/document "three"))
-                  52 (handle-keypress (.getElementById js/document "four"))
-                  53 (handle-keypress (.getElementById js/document "five"))
-                  54 (handle-keypress (.getElementById js/document "six"))
-                  55 (handle-keypress (.getElementById js/document "seven"))
-                  56 (handle-keypress (.getElementById js/document (if (.-shiftKey e) "multiply" "eight")))
-                  57 (handle-keypress (.getElementById js/document "nine"))
+        (fn [e]
+          (case (.-which e)
+            48 (handle-keypress "zero")
+            49 (handle-keypress "one")
+            50 (handle-keypress "two")
+            51 (handle-keypress "three")
+            52 (handle-keypress "four")
+            53 (handle-keypress (if (.-shiftKey e) "percent" "five"))
+            54 (handle-keypress "six")
+            55 (handle-keypress "seven")
+            56 (handle-keypress (if (.-shiftKey e) "multiply" "eight"))
+            57 (handle-keypress "nine")
 
-                  8 (re-frame/dispatch [::events/delete])
-                  13 (handle-keypress (.getElementById js/document "equal"))
-                  27 (handle-keypress (.getElementById js/document "clr"))
-                  187 (handle-keypress (.getElementById js/document (if (.-shiftKey e) "add" "equal")))
-                  189 (handle-keypress (.getElementById js/document "subtract"))
-                  190 (handle-keypress (.getElementById js/document "decimal"))
-                  191 (handle-keypress (.getElementById js/document "divide"))
-                  nil))))
+            8 (re-frame/dispatch [::events/delete])
+            12 (handle-keypress "clr")
+            27 (handle-keypress "clr")
+            106 (handle-keypress "multiply")
+            107 (handle-keypress "add")
+            13 (handle-keypress "equal")
+            187 (handle-keypress (if (.-shiftKey e) "add" "equal"))
+            189 (handle-keypress (if (.-altKey e) "negate" "subtract"))
+            109 (handle-keypress (if (.-altKey e) "negate" "subtract"))
+            110 (handle-keypress "decimal")
+            190 (handle-keypress "decimal")
+            111 (handle-keypress "divide")
+            191 (handle-keypress "divide")
+            nil))))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (reagent/render [views/main-panel]
                   (.getElementById js/document "app")
-                  setup))
+                  set-keybindings))
 
 (defn ^:export init []
   (re-frame/dispatch-sync [::events/initialize-db])

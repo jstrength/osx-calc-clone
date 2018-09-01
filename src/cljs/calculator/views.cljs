@@ -18,7 +18,7 @@
                  8 "eight"
                  9 "nine"})
 
-(def button-classes ["btn" "btn-outline-dark" "col-2"])
+(def button-classes ["calcBtn" "btn" "btn-outline-dark" "col-2"])
 
 (defn create-num-button [num]
   [:button {:class button-classes
@@ -46,6 +46,6 @@
     [:div.row [create-num-button 1] [create-num-button 2] [create-num-button 3]
      [:button#add {:class button-classes :on-click #(rf/dispatch [::events/operation +])} "+"]]
     [:div.row
-     [:button#zero {:class ["btn" "btn-outline-dark" "col-4"] :on-click #(rf/dispatch [::events/entered-num 0])} 0]
+     [:button#zero {:class ["calcBtn" "btn" "btn-outline-dark" "col-4"] :on-click #(rf/dispatch [::events/entered-num 0])} 0]
      [:button#decimal {:class button-classes} "."]
      [:button#equal {:class button-classes :on-click #(rf/dispatch [::events/equal])} "="]]]])

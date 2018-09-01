@@ -1,4 +1,31 @@
-button { height: 50px;
-         font-size: 30px;}
+button {
+         max-height: 150px;
+}
 
-.simple-calc {}
+.calcBtn { //flex: 1 0 auto;
+         height:auto;
+         font-size: 30px;
+         }
+
+/*
+.calcBtn:before {
+    content:'';
+    float:left;
+    padding-top:100%;
+}
+*/
+
+.longCalcBtn {
+        //flex: 1 0 auto;
+        height:auto;
+        font-size: 30px;}
+
+/*
+.longCalcBtn:before {
+    content:'';
+    float:left;
+    padding-top:50%;
+}
+*/
+
+.simpleCalc { max-width: 800px; }
