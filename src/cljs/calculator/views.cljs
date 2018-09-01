@@ -18,9 +18,12 @@
                  8 "eight"
                  9 "nine"})
 
+(def button-classes ["btn" "btn-outline-dark" "col-2"])
+
 (defn create-num-button [num]
-  [:button.btn.btn-outline-dark.col-2 {:on-click #(rf/dispatch [::events/entered-num num])
-                                       :id (num-to-str num)}
+  [:button {:class button-classes
+            :on-click #(rf/dispatch [::events/entered-num num])
+            :id (num-to-str num)}
    num])
 
 (defn main-panel []
@@ -30,19 +33,19 @@
    [:div.simple-calc {:style {:min-width "200px"}}
     [:div.row [:h1.col-8.text-right (<subs [::subs/display])]]
     [:div.row
-     [:button#clr.btn.btn-outline-dark.col-2
-      {:on-click #(rf/dispatch [::events/clear-display])}
+     [:button#clr {:class button-classes
+                   :on-click #(rf/dispatch [::events/clear-display])}
       "C"]
-     [:button#negate.btn.btn-outline-dark.col-2  "+/-"]
-     [:button#percent.btn.btn-outline-dark.col-2  "%"]
-     [:button#multiply.btn.btn-outline-dark.col-2 {:on-click #(rf/dispatch [::events/operation *])} "*"]]
+     [:button#negate {:class button-classes}  "+/-"]
+     [:button#percent {:class button-classes}  "%"]
+     [:button#multiply {:class button-classes :on-click #(rf/dispatch [::events/operation *])} "*"]]
     [:div.row [create-num-button 7] [create-num-button 8] [create-num-button 9]
-     [:button#divide.btn.btn-outline-dark.col-2 {:on-click #(rf/dispatch [::events/operation /])} "/"]]
+     [:button#divide {:class button-classes :on-click #(rf/dispatch [::events/operation /])} "/"]]
     [:div.row [create-num-button 4] [create-num-button 5] [create-num-button 6]
-     [:button#subtract.btn.btn-outline-dark.col-2 {:on-click #(rf/dispatch [::events/operation -])} "-"]]
+     [:button#subtract {:class button-classes :on-click #(rf/dispatch [::events/operation -])} "-"]]
     [:div.row [create-num-button 1] [create-num-button 2] [create-num-button 3]
-     [:button#add.btn.btn-outline-dark.col-2 {:on-click #(rf/dispatch [::events/operation +])} "+"]]
+     [:button#add {:class button-classes :on-click #(rf/dispatch [::events/operation +])} "+"]]
     [:div.row
-     [:button#zero.btn.btn-outline-dark.col-4 {:on-click #(rf/dispatch [::events/entered-num 0])} 0]
-     [:button#decimal.btn.btn-outline-dark.col-2 "."]
-     [:button#equal.btn.btn-outline-dark.col-2 {:on-click #(rf/dispatch [::events/equal])} "="]]]])
+     [:button#zero {:class ["btn" "btn-outline-dark" "col-4"] :on-click #(rf/dispatch [::events/entered-num 0])} 0]
+     [:button#decimal {:class button-classes} "."]
+     [:button#equal {:class button-classes :on-click #(rf/dispatch [::events/equal])} "="]]]])
