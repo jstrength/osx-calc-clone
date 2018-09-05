@@ -22,10 +22,12 @@
 
 (defn create-num-button [num]
   [:button {:class button-classes
-            :on-click #(rf/dispatch [::events/entered-num num])
+            :on-click #(rf/dispatch [::events/number num])
             :id (num-to-str num)}
    num])
 
+;todo fix bug where button is focused and entered presses it
+;todo use scss instead of bootstrap
 (defn main-panel []
   [:div.container
    [:div {:style {:height "50px"}} @re-frame.db/app-db]
@@ -36,8 +38,8 @@
      [:button#clr {:class button-classes
                    :on-click #(rf/dispatch [::events/clear-display])}
       "C"]
-     [:button#negate {:class button-classes}  "+/-"]
-     [:button#percent {:class button-classes}  "%"]
+     [:button#negate {:class button-classes :on-click #(rf/dispatch [::events/negate])} "+/-"]
+     [:button#percent {:class button-classes :on-click #(rf/dispatch [::events/percent])} "%"]
      [:button#multiply {:class button-classes :on-click #(rf/dispatch [::events/operation *])} "*"]]
     [:div.row [create-num-button 7] [create-num-button 8] [create-num-button 9]
      [:button#divide {:class button-classes :on-click #(rf/dispatch [::events/operation /])} "/"]]
@@ -46,6 +48,6 @@
     [:div.row [create-num-button 1] [create-num-button 2] [create-num-button 3]
      [:button#add {:class button-classes :on-click #(rf/dispatch [::events/operation +])} "+"]]
     [:div.row
-     [:button#zero {:class ["calcBtn" "btn" "btn-outline-dark" "col-4"] :on-click #(rf/dispatch [::events/entered-num 0])} 0]
-     [:button#decimal {:class button-classes} "."]
+     [:button#zero {:class ["calcBtn" "btn" "btn-outline-dark" "col-4"] :on-click #(rf/dispatch [::events/number 0])} 0]
+     [:button#decimal {:class button-classes :on-click #(rf/dispatch [::events/decimal])} "."]
      [:button#equal {:class button-classes :on-click #(rf/dispatch [::events/equal])} "="]]]])

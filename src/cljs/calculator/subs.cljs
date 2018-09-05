@@ -9,5 +9,5 @@
 
 (rf/reg-sub
   ::display
-  (fn [{d :working-num}]
-    d))
+  (fn [{:keys [current-num]}]
+    (str current-num)))

@@ -1,52 +1,31 @@
 (ns calculator.events
   (:require
-    [re-frame.core :as rf]
-    ))
+    [clojure.spec.alpha :as s]
+    [re-frame.core :as rf]))
 
+#_(s/def db
+    (s/keys :req-un [:state :operation :previous-num :current-num]))
+(s/def ::current-num integer?)
+(s/def ::previous-num (s/or :none nil? :num integer?))
+(s/def ::state integer? #_(s/or :ready :operation :entered-num :decimal :equals))
+
+(defn parse-num [num]
+  (js/parseFloat num))
+
+(defn format-num [num]
+  num
+  ;todo How to properly format
+  ;(js/Number. (str (.round js/Math (str num "e2")) "e-2"))
+  )
+
+;spec would be nice to list valid states, operations
 (def default-db
-  {:state ::ready
-   :op-stack []
-   :working-num 0})
+  {:state :equals
+   :operation nil
+   :previous-num nil
+   :current-num 0})
 
-(def state-machine
-  {::ready {::entered-num ::entering-nums
-            ::equal ::ready}
-   ::entering-nums {::operation ::operation ;wtf
-                    ::entered-num ::entering-nums
-                    ::equal ::equals}
-   ::operation {::entered-num ::entering-nums
-                ::operation ::operation ;;todo: this is wrong, it'll calculate if you switch operations
-                ::equal ::equals}
-   ::equals {::equal ::equals
-             ::operation ::ready}})
-
-;states: ready, entering-nums, operation, equals,
-
-;;todo need to add many more states to make functionality more granular
-;todo Do not store state in DB, store in context
-;todo as a Rule the event handlers shouldn't know about state
-
-(defn next-state
-  [fsm current-state transition]
-  (get-in fsm [current-state transition]))
-
-(defn update-next-state
-  [db event]
-  (if-let [new-state (next-state state-machine (:state db) event)]
-    (assoc db :state new-state)
-    db))
-
-(def state-machine-intercept
-  (rf/->interceptor
-    :id :state-machine-intercept
-    :before (fn [{{:keys [db event]} :coeffects :as context}]
-              (if (next-state state-machine (:state db) (first event))
-                context
-                (update context :queue butlast)))
-    :after (fn [context]
-             (when (get-in context [:effects :db])
-               (update-in context [:effects :db]
-                          #(update-next-state % (get-in context [:coeffects :event 0])))))))
+;todo use clojure.spec
 
 (rf/reg-event-db
   ::initialize-db
@@ -54,12 +33,15 @@
     default-db))
 
 (rf/reg-event-db
-  ::entered-num
-  [rf/debug state-machine-intercept]
-  (fn [db [_ num]]
-    (if (= ::entering-nums (:state db))
-      (update db :working-num #(-> % (* 10) (+ num)))
-      (assoc db :working-num num))))
+  ::number
+  [rf/debug]
+  (fn [{:keys [state] :as db} [_ num]]
+    (condp = state
+      :entered-num
+      (update db :current-num #(str % num))
+
+      (assoc db :current-num num
+                :state :entered-num))))
 
 (rf/reg-event-db
   ::clear-display
@@ -69,38 +51,72 @@
 (rf/reg-event-db
   ::delete
   (fn [db _]
-    (update db :working-num #(quot % 10))))
+    (update db :current-num #(quot % 10))))
+
+(rf/reg-event-db
+  ::negate
+  [rf/debug]
+  (fn [db _]
+    (update db :current-num #(* -1 %))))
+
+(rf/reg-event-db
+  ::decimal
+  [rf/debug]
+  (fn [{:keys [current-num] :as db} _]
+    (if (.includes (str current-num) ".")
+      db
+      (update db :current-num #(str % ".")))))
+
+(rf/reg-event-db
+  ::percent
+  [rf/debug]
+  (fn [{:keys [current-num previous-num operation]} _]
+    (let [percent-op #(-> % parse-num (/ 100))]
+      {:current-num (if previous-num
+                      (operation (parse-num previous-num)
+                                 (percent-op current-num))
+                      (percent-op current-num))
+       :state :percent})))
 
 (rf/reg-event-db
   ::operation
-  [rf/debug state-machine-intercept]
-  (fn [{:keys [op-stack working-num state] :as db} [_ op-fn]]
+  [rf/debug]
+  (fn [{:keys [current-num previous-num state operation] :as db} [_ op-fn]]
     (cond
-      (fn? (peek op-stack))
-      (assoc db :op-stack (vector ((peek op-stack) (peek (pop op-stack)) working-num) op-fn))
+      (or (= state :equals) (nil? previous-num))
+      (assoc db :operation op-fn
+                :state :operation
+                :previous-num current-num)
 
-      (not-empty op-stack)
-      (update db :op-stack conj op-fn)
+      (= state :operation)
+      (assoc db :operation op-fn)
 
-      (= ::entering-nums state)
-      (assoc db :op-stack [working-num op-fn])
+      (= state :entered-num)
+      (let [new-num (operation (parse-num previous-num) (parse-num current-num))]
+        (assoc db :operation op-fn
+                  :state :operation
+                  :current-num new-num
+                  :previous-num new-num))
 
       :else
       db)))
 
 (rf/reg-event-db
   ::equal
-  [rf/debug state-machine-intercept]
-  (fn [{:keys [op-stack working-num state] :as db} _]
+  [rf/debug]
+  (fn [{:keys [current-num previous-num operation state] :as db} _]
     (cond
-      (= ::equals state)
-      (let [new-num ((peek op-stack) (peek (pop op-stack)) working-num)]
-        (assoc db :working-num new-num))
+      (or (and (= :entered-num state) operation) (= :operation state))
+      (letfn [(working-op-fn [x] (format-num (operation (parse-num x) (parse-num current-num))))]
+        {:current-num (working-op-fn (or previous-num current-num))
+         :working-op-fn working-op-fn
+         :state :equals})
 
-      (fn? (peek op-stack))
-      (let [new-num ((peek op-stack) (peek (pop op-stack)) working-num)]
-        (assoc db :op-stack (vector working-num (peek op-stack))
-                  :working-num new-num))
+      (= :equals state)
+      (let [{:keys [working-op-fn]} db]
+        (assoc db :current-num (working-op-fn current-num)))
 
       :else
-      db)))
+      (-> db
+          (assoc :state :equals)
+          (update :current-num #(-> % parse-num format-num))))))

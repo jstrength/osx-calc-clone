@@ -1,6 +1,7 @@
 (defproject calculator "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.10.238"]
+                 [org.clojure/spec.alpha "0.2.168"]
                  [reagent "0.8.1"]
                  [re-frame "0.10.5"]]
 
@@ -26,7 +27,7 @@
   :cljsbuild
   {:builds
    [{:id           "dev"
-     :source-paths ["src/cljs"]
+     :source-paths ["src/cljs" "test/cljs"]
      :figwheel     {:on-jsload "calculator.core/mount-root"}
      :compiler     {:main                 calculator.core
                     :output-to            "resources/public/js/compiled/app.js"
