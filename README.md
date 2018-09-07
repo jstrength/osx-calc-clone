@@ -1,6 +1,6 @@
 # calculator
 
-A [re-frame](https://github.com/Day8/re-frame) application designed to ... well, that part is up to you.
+Web app clone of OSX basic calculator using Clojurescript and re-frame.
 
 ## Development Mode
 
