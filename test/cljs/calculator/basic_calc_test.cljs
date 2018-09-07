@@ -37,7 +37,12 @@
     (dispatch-events 2 - 3 =)
     (is (= "-1" @display))
     (dispatch-events - 2 1 -)
-    (is (= "-22" @display))))
+    (is (= "-22" @display))
+    (clear-db)
+    (dispatch-events - 3)
+    (is (= "3" @display))
+    (dispatch-events =)
+    (is (= "-3" @display))))
 
 (deftest negate
   (let [display (rf/subscribe [::subs/display])]

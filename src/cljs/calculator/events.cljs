@@ -46,6 +46,7 @@
 (rf/reg-event-db
   ::clear-display
   (fn [db _]
+    ;todo clear vs all clear
     default-db))
 
 (rf/reg-event-db
